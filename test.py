@@ -1,11 +1,19 @@
+import pytest
 from micrograd import Value
 
-a = Value(2.0)
-b = Value(3.0)
-print('a is ', a)
-print('b is ', b)
+def test_add():
+    r = Value(1.0) + Value(2.0)
+    assert r.data == 3.0
+    r = 10.0 + Value(2.0)
+    assert r.data == 12.0
 
-c = a+b; c.label='c'
-d = a*b; d.label='d'
-print(c.label, c, c._prev, c._op)
-print(d.label, d, d._prev, d._op)
+def test_mul():
+    r = Value(3.0) * Value(2.0)
+    assert  r.data == 6.0
+    r = 10.0 * Value(2.0)
+    assert r.data == 20.0
+
+def test_tanh():
+    r = Value(10.0)
+    t = r.tanh()
+    assert t.data == 0.9999999958776927
