@@ -1,5 +1,18 @@
 # Structure of Value Class
 
+Can perform following operations
+
+```py
+>>> Value(1.0) + Value(2.0)
+Value(3.0)
+
+>>> Value(2.0) * Value(3.0)
+Value(6.0)
+
+>>> Value(2.9).tanh()
+Value()
+```
+
 ## Attributes
 
 `data`
