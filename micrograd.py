@@ -5,6 +5,14 @@ import matplotlib.pyplot as plt
 class Value():
 
     def __init__(self, data, _children=(), _op='', label=''):
+        """
+        data: data of the object
+        grad: gradient of loss WRT current data
+        _backward: function that computes gradient. dLoss/dCurrentNode. Initially it will be None.
+        _prev: set of children nodes
+        _op: operation
+        label: variable name/label
+        """
         self.data = data
         self.grad = 0.0
         self._backward = lambda: None
@@ -25,8 +33,12 @@ class Value():
         out._backward = _backward
 
         return out
+    
+    def __radd__(self, other):
+        return self + other
 
     def __mul__(self, other):
+        other = other if isinstance(other, Value) else Value(other)
         out = Value(self.data * other.data, (self, other),'*')
 
         def _backward():
@@ -34,6 +46,9 @@ class Value():
             other.grad += self.data * out.grad
         out._backward = _backward
         return out
+
+    def __rmul__(self, other):
+        return self * other
 
     def tanh(self):
         e = math.e**(2*self.data)
