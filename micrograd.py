@@ -47,6 +47,9 @@ class Value():
         out._backward = _backward
         return out
 
+    # def __pow__(self, other):
+
+
     def __rmul__(self, other):
         return self * other
 
@@ -59,7 +62,24 @@ class Value():
         out._backward = _backward
         return out
 
+    def __neg__(self):
+        # (-other) overriding negative operation
+        return self * -1
+
+    def __sub__(self, other):
+        return self + (-other)
+
+    def exp(self):
+        x = self.data
+        out = Value(math.exp(x), (self,), 'exp') # exp function / forward pass
+
+        def _backward():
+            self.grad += out.data * out.grad # derivation of exp function multiply with global gradient
+        out._backward = _backward 
+        return out
+
     def backward(self):
+        # Running Topological sort
         topo = []
         visited = set()
         def build_topo(v):
@@ -70,6 +90,8 @@ class Value():
                 topo.append(v)
         build_topo(self)
         self.grad = 1.0
+
+        # Call each node's _backward() function in reverse topological order to calculate gradient
         for node in reversed(topo):
             node._backward()
     

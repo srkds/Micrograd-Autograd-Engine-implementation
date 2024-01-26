@@ -52,3 +52,39 @@ Value()
 
 - add
 - multiply
+
+#### Negative (-a)
+
+```py
+   def __neg__(self):
+        return self * -1
+```
+
+Negating the value.
+
+eg
+
+```py
+a # 10
+(-a) #-10
+```
+
+#### Subtraction (a-b)
+
+```py
+   def __sub__(self, other):
+        return self + (-other) # (-other) is the negative operation
+```
+
+Reusing the `addition` operation by passing other value as its oposite value by negating `(-other)` to get subtracted value. And there's no need of differentiation method `._backward()` beacause we are reusing the `+` operation and it has `._backward()`.
+
+Eg:
+
+```py
+a = 10
+b = 5
+
+a + (-b) # 5
+a - b    # 5
+
+```
