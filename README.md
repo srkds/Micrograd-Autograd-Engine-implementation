@@ -1,4 +1,4 @@
-# Micrograd Autograd Engine Implementation
+# Micrograd Autograd Engine - Vectorized Implementation
 
 <img src="./assets/MLP2.png" width="700">
 
