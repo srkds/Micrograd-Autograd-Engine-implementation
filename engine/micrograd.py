@@ -22,6 +22,12 @@ class Value:
     out._backward = _backward
     return out
 
+  def __neg__(self): # -self
+    return self.data * -1
+            
+  def __sub__(self, other): # self - other
+    return self + (-other)
+  
   def __mul__(self, other):
     other = other if isinstance(other, Value) else Value(other)
     other.data = np.broadcast_to(other.data, self.data.shape)
@@ -41,13 +47,78 @@ class Value:
 
     def _backward():
       self.grad += out.grad @ other.data.T
-      print("Grad: ", self.grad)
+      # print("Grad: ", self.grad)
       other.grad += self.data.T @ out.grad
     out._backward = _backward
     return out
 
   def __repr__(self):
     return f"Value: {self.data}, Grad: {self.grad}"
+
+  def sum(self):
+    if not isinstance(self, Value):
+      self = Value(self)
+    out = Value(self.data.sum(), (self,), "sum")
+
+    def _backward():
+      self.grad += out.grad
+    out._backward = _backward
+    # print(self)
+    return out
+
+  def BCE(self, other):
+    """
+    Accepts (y, yh)
+    TODO: atomic operation for divide, exp, log, etc
+    """
+    if not isinstance(self, Value):
+      self = Value(self)
+    if not isinstance(other, Value):
+      other = Value(other)
+    
+    eps = 1e-8
+    m = self.data.shape[1] # expecting (1,m) where m is no of training examples
+    out = -np.sum(np.multiply(self.data, np.log(other.data + eps)) + np.multiply((1-self.data), np.log(1-other.data + eps))) / m
+    out = Value(out, (self, other), "BCE")
+
+    def _backward():
+      # https://www.python-unleashed.com/post/derivation-of-the-binary-cross-entropy-loss-gradient
+      # dAL = -(np.divide(Y, AL) - np.divide(1-Y, 1-AL))
+      dyh = -(np.divide(self.data, other.data + eps) - np.divide(1-self.data, 1-other.data + eps))
+      other.grad[:] += dyh
+      # print(dyh)
+    out._backward = _backward
+
+    return out
+    
+    # m = Y.shape[1]
+    # J = -np.sum(np.multiply(Y, np.log(AL)) + np.multiply((1-Y), np.log(1-AL))) / m
+
+  def ReLU(self):
+    self = self if isinstance(self, Value) else Value(self)
+    out = np.maximum(0, self.data)
+
+    out = Value(out, (self,), "ReLU")
+
+    def _backward():
+      self.grad += out.grad * (self.data > 0)
+      # mask = self.data <= 0
+      # self.grad += np.array(out.grad, copy=True)
+      # self.grad[mask] += 0
+    out._backward = _backward
+    return out
+
+  def Sigmoid(self):
+    self = self if isinstance(self, Value) else Value(self)
+    out = 1 / (1 + np.exp(-self.data))
+    # print(-self.data)
+    out = Value(out, (self, ), "Sigmoid")
+
+    def _backward():
+      self.grad += out.data * (1 - out.data) * out.grad
+    out._backward = _backward
+
+    return out
 
   def backward(self):
     # DAG
@@ -61,11 +132,13 @@ class Value:
         topo.append(v)
     build_topo(self)
 
-    self.grad[:] = 1
+    if self.grad.ndim > 0:
+       self.grad[:] = 1 
+    else:
+       self.grad = np.array(1) 
     for v in reversed(topo):
       v._backward()
-
-
+      
 if __name__ == "__main__":
     a = Value([3,5,6])
     o = a + 3 # support of broadcast
