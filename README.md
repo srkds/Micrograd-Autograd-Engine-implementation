@@ -88,3 +88,29 @@ a + (-b) # 5
 a - b    # 5
 
 ```
+
+#### Pow ($ x^y $)
+
+```py
+   def __pow__(self, other):
+        assert isinstance(other, (int, float))
+        out = Value(self.data**other, (self, ), f"**{other}")
+
+        def _backward():
+                self.grad += (other * self.data**(other-1)) * out.grad
+        out._backward = _backward
+        return out
+```
+
+Overriding pow function as a helper function for divide. Accepting only int or float as a pow value. Derivation of the power function is $ nx^{n-1} $ that is the power rule.
+
+Eg:
+
+```py
+a = Value(10)
+a**2 # Value(data=100)
+```
+
+## Important Clarifications
+
+### Q1. Why accumulating the gradients

@@ -1,5 +1,5 @@
 import pytest
-from micrograd import Value
+from old.micrograd import Value
 
 def test_add():
     r = Value(1.0) + Value(2.0)

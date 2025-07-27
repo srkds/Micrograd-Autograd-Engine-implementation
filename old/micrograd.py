@@ -47,8 +47,14 @@ class Value():
         out._backward = _backward
         return out
 
-    # def __pow__(self, other):
+    def __pow__(self, other):
+      assert isinstance(other, (float, int)), "Allowing other as only int or float"
+      out = Value(self.data**other, (self, ), f"**{other}")
 
+      def _backward():
+        self.grad += (other * self.data**(other-1)) * out.grad
+      out._backward = _backward
+      return out
 
     def __rmul__(self, other):
         return self * other
